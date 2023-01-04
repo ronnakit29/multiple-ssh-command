@@ -9,8 +9,6 @@ function createConnection(host, username, password, command) {
           if (err) throw err;
           stream
             .on("close", (code, signal) => {
-              console.log("Stream closed");
-              console.log(`code: ${code} signal: ${signal}`);
               conn.end();
               resolve();
             })
@@ -66,15 +64,29 @@ const hosts = hostTextFile.split("\r\n").map((host, index) => {
     password: passwordTextFile.split("\r\n")[index],
   };
 });
-
-console.log("hosts: ", hosts);
+// log => host
+console.log(
+  "\x1b[32m",
+  "================== HOST LIST ==================",
+  "\x1b[0m"
+);
+hosts.forEach((host) => {
+  // pattern ==> ${host}
+  console.log(`Host:`, "\x1b[33m", ` ${host.host}`, "\x1b[0m");
+});
+console.log(
+  "\x1b[32m",
+  "===============================================",
+  "\x1b[0m"
+);
+console.log("Host Count : ", "\x1b[32m", hosts.length, "\x1b[0m");
 async function main() {
   // set question
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
-  rl.question("Enter your command/q : ", async (command) => {
+  rl.question("Enter your command or type 'q' to quit : ", async (command) => {
     if (command === "q") {
       rl.close();
       return;
@@ -99,6 +111,13 @@ async function main() {
             const failHost = [];
             for (let i = 0; i < hosts.length; i++) {
               try {
+                console.log(
+                  "No.",
+                  i + 1,
+                  "[Host]",
+                  hosts[i].host,
+                  "Sending Command...!"
+                );
                 const data = await createConnection(
                   hosts[i].host,
                   hosts[i].username,
@@ -111,22 +130,42 @@ async function main() {
                   console.log(data.toString());
                 }
               } catch (error) {
-                console.log(error);
+                console.log("Host", hosts[i].host, "Sent Command Error...!");
                 fail++;
                 failHost.push(hosts[i].host);
               }
             }
-            console.log("done all!");
-            console.log("REPORT, success: [", success, "] fail: [", fail, "]");
+            console.log("Done all!");
+            // count all
+            console.log("Total Host : ", hosts.length);
+            console.log(
+              "REPORT, success: [",
+              "\x1b[32m",
+              success,
+              "\x1b[0m",
+              "] fail: [",
+              "\x1b[31m",
+              fail,
+              "\x1b[0m",
+              "]"
+            );
             // green
-            console.log("\x1b[32m", "****** SUCCESS ******", "\x1b[0m");
+            console.log(
+              "\x1b[32m",
+              "================== SUCCESS ==================",
+              "\x1b[0m"
+            );
             // reset
             successHost.forEach((host) => {
               // yellow before host
               console.log("==> ", "\x1b[33m", host, "\x1b[0m");
             });
             // red
-            console.log("\x1b[31m", "****** FAIL ******");
+            console.log(
+              "\x1b[31m",
+              "================== FAIL ==================",
+              "\x1b[0m"
+            );
             failHost.forEach((host) => {
               // yellow before host
               console.log("==> ", "\x1b[33m", host, "\x1b[0m");
