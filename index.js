@@ -134,6 +134,7 @@ async function main() {
                 let fail = 0;
                 const successHost = [];
                 const failHost = [];
+                const runAll = [];
                 for (let i = 0; i < hosts.length; i++) {
                   try {
                     console.log(
@@ -143,27 +144,26 @@ async function main() {
                       hosts[i].host,
                       "Sending Command...!"
                     );
-                    const data = await createConnection(
-                      hosts[i].host,
-                      hosts[i].username,
-                      hosts[i].password,
-                      command
+                    runAll.push(
+                      createConnection(
+                        hosts[i].host,
+                        hosts[i].username,
+                        hosts[i].password,
+                        command
+                      )
                     );
                     success++;
                     successHost.push(hosts[i].host);
-                    if (showOutput === "y") {
-                      console.log(data.toString());
-                    }
                   } catch (error) {
-                    console.log(
-                      "Host",
-                      hosts[i].host,
-                      "Sent Command Error...!"
-                    );
-                    bypassHost(hosts[i].host);
                     fail++;
                     failHost.push(hosts[i].host);
+                    console.log(error);
                   }
+                }
+                try {
+                  await Promise.all(runAll);
+                } catch (error) {
+                  console.log(error)
                 }
                 console.log("Done all!");
                 // count all
